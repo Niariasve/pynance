@@ -1,0 +1,58 @@
+[project]
+name = "pynance"
+version = "0.1.0"
+description = "Python CLI/TUI personal finance tool"
+authors = [
+    {name = "Niariasve",email = "niarias@espol.edu.ec"}
+]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "typer (>=0.26.8,<0.27.0)",
+    "rich (>=15.0.0,<16.0.0)",
+    "sqlalchemy (>=2.0.51,<3.0.0)",
+    "pydantic (>=2.13.4,<3.0.0)"
+]
+
+[tool.poetry]
+packages = [{include = "pynance", from = "src"}]
+
+[tool.poetry.scripts]
+pynance = "pynance.main:main"
+
+[tool.mypy]
+python_version = "3.13"
+files = ["src", "tests"]
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
+[tool.ruff]
+line-length = 88
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+
+[dependency-groups]
+dev = [
+    "mypy (>=2.2.0,<3.0.0)",
+    "ruff (>=0.15.21,<0.16.0)",
+    "pytest (>=9.1.1,<10.0.0)",
+    "pytest-cov (>=7.1.0,<8.0.0)"
+]
