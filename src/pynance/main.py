@@ -2,6 +2,7 @@ from pathlib import Path
 
 import typer
 
+from pynance.cli.account_commands import accounts_app
 from pynance.database import create_engine_from_url, init_db
 from pynance.models import account as _account
 
@@ -10,9 +11,13 @@ DATABASE_URL = f"sqlite+pysqlite:///{DATABASE_PATH}"
 
 app = typer.Typer()
 
+app.add_typer(accounts_app, name="accounts")
+
+
 @app.callback()
 def callback() -> None:
     """Pynance personal finance CLI."""
+
 
 @app.command()
 def init() -> None:
