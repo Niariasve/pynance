@@ -21,7 +21,7 @@ class Account(Base):
     __table_args__ = CheckConstraint(
         "account_type IN ('cash', 'bank', 'credit_card', 'savings')",
         name="check_account_type",
-    )
+    ),
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)

@@ -1,19 +1,31 @@
+from pathlib import Path
+
 import typer
+
+from pynance.database import create_engine_from_url, init_db
+from pynance.models import account as _account
+
+DATABASE_PATH = Path("data/pynance.db")
+DATABASE_URL = f"sqlite+pysqlite:///{DATABASE_PATH}"
 
 app = typer.Typer()
 
+@app.callback()
+def callback() -> None:
+    """Pynance personal finance CLI."""
 
 @app.command()
-def greet(name: str) -> None:
-    print(f"Hello {name}")
+def init() -> None:
+    DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
 
+    engine = create_engine_from_url(DATABASE_URL)
 
-@app.command()
-def goodbye(name: str, formal: bool = False) -> None:
-    if formal:
-        print(f"Goodbye Mr. {name}, have a good day")
-    else:
-        print(f"See ya {name}!")
+    try:
+        init_db(engine)
+    finally:
+        engine.dispose()
+
+    typer.echo("Database initialized")
 
 
 def main() -> None:
