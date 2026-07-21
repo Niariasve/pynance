@@ -22,3 +22,9 @@ class BaseRepository[ModelT]:
     def delete(self, entity: ModelT) -> None:
         self._session.delete(entity)
         self._session.commit()
+
+    def update(self, entity: ModelT) -> ModelT:
+        self._session.add(entity)
+        self._session.commit()
+        self._session.refresh(entity)
+        return entity

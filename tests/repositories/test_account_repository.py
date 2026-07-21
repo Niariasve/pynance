@@ -1,7 +1,6 @@
 from collections.abc import Iterator
 from decimal import Decimal
 from pathlib import Path
-from typing import cast
 
 import pytest
 from sqlalchemy.orm import Session, sessionmaker
@@ -18,7 +17,7 @@ def session_factory(tmp_path: Path) -> Iterator[sessionmaker[Session]]:
     init_db(engine)
 
     try:
-        yield cast(sessionmaker[Session], create_session_factory(engine))
+        yield create_session_factory(engine)
     finally:
         engine.dispose()
 
@@ -120,3 +119,28 @@ def test_account_repository_deletes_account(
         repository.delete(account)
 
         assert repository.get_by_id(account.id) is None
+
+
+def test_account_repository_updates_account(
+    session_factory: sessionmaker[Session],
+) -> None:
+    with session_factory() as session:
+        repository = AccountRepository(session)
+        account = repository.add(
+            Account(
+                name="Cash",
+                account_type=AccountType.CASH,
+                balance=Decimal("20.00"),
+            )
+        )
+
+        account.name = "Wallet"
+        account.balance = Decimal("35.50")
+        updated_account = repository.update(account)
+
+        assert updated_account.name == "Wallet"
+        assert updated_account.balance == Decimal("35.50")
+
+        persisted_account = repository.get_by_id(account.id)
+        assert persisted_account is not None
+        assert persisted_account.name == "Wallet"
