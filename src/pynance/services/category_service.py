@@ -49,7 +49,7 @@ class CategoryService:
                 raise ValueError("Category name cannot be empty")
 
             existing_category = self.repository.get_by_name(clean_name)
-            if existing_category is not None:
+            if existing_category is not None and existing_category.id != category_id:
                 raise ValueError("Category name already exists")
 
             category.name = clean_name
