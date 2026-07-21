@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from pynance.database import create_engine_from_url, create_session_factory, init_db
 from pynance.models.account import Account, AccountType
+from pynance.models.category import Category, CategoryType
 
 
 @pytest.fixture
@@ -32,6 +33,14 @@ def test_init_db_creates_accounts_table(engine: Engine) -> None:
     assert "accounts" in inspector.get_table_names()
 
 
+def test_init_db_creates_categories_table(engine: Engine) -> None:
+    init_db(engine)
+
+    inspector = inspect(engine)
+
+    assert "categories" in inspector.get_table_names()
+
+
 def test_session_factory_can_persist_and_read_accounts(engine: Engine) -> None:
     init_db(engine)
     session_factory = create_session_factory(engine)
@@ -52,6 +61,21 @@ def test_session_factory_can_persist_and_read_accounts(engine: Engine) -> None:
     assert account.name == "Cash"
     assert account.account_type == AccountType.CASH
     assert account.balance == Decimal("20.00")
+
+
+def test_session_factory_can_persist_and_read_categories(engine: Engine) -> None:
+    init_db(engine)
+    session_factory = create_session_factory(engine)
+
+    with session_factory() as session:
+        session.add(Category(name="Food", category_type=CategoryType.EXPENSE))
+        session.commit()
+
+    with session_factory() as session:
+        category = session.scalars(select(Category)).one()
+
+    assert category.name == "Food"
+    assert category.category_type == CategoryType.EXPENSE
 
 
 def test_session_factory_expires_nothing_on_commit(engine: Engine) -> None:
