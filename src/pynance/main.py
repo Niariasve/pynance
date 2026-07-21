@@ -1,13 +1,13 @@
-from pathlib import Path
-
 import typer
 
 from pynance.cli.account_commands import accounts_app
-from pynance.database import create_engine_from_url, init_db
+from pynance.database import (
+    DATABASE_PATH,
+    DATABASE_URL,
+    create_engine_from_url,
+    init_db,
+)
 from pynance.models import account as _account
-
-DATABASE_PATH = Path("data/pynance.db")
-DATABASE_URL = f"sqlite+pysqlite:///{DATABASE_PATH}"
 
 app = typer.Typer()
 

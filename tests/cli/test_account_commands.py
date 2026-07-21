@@ -10,7 +10,6 @@ from pynance.database import create_session_factory
 from pynance.main import app
 from pynance.models.account import Account, AccountType
 
-
 runner = CliRunner()
 
 

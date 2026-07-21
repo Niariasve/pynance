@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import cast
 
 import pytest
-from sqlalchemy import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from pynance.database import create_engine_from_url, create_session_factory, init_db

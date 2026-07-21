@@ -6,7 +6,6 @@ from typer.testing import CliRunner
 
 from pynance.main import app
 
-
 runner = CliRunner()
 
 
