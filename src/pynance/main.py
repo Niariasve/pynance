@@ -1,6 +1,7 @@
 import typer
 
 from pynance.cli.account_commands import accounts_app
+from pynance.cli.category_commands import category_app
 from pynance.database import (
     DATABASE_PATH,
     DATABASE_URL,
@@ -11,6 +12,7 @@ from pynance.database import (
 app = typer.Typer()
 
 app.add_typer(accounts_app, name="accounts")
+app.add_typer(category_app, name="categories")
 
 
 @app.callback()

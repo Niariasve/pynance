@@ -13,11 +13,11 @@ class CategoryType(StrEnum):
 
 
 class Category(Base):
-    __tablename__ = "category"
+    __tablename__ = "categories"
 
     __table_args__ = CheckConstraint(
         "category_type IN ('income', 'expense')", name="check_category_type"
-    )
+    ),
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(150), nullable=False)
