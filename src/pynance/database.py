@@ -6,12 +6,15 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
+from pynance.models import import_models
+
 DATABASE_PATH = Path("data/pynance.db")
 DATABASE_URL = f"sqlite+pysqlite:///{DATABASE_PATH}"
 
 
 class Base(DeclarativeBase):
     pass
+
 
 class DatabaseNotInitializedError(Exception):
     pass
@@ -30,6 +33,7 @@ def create_session_factory(engine: Engine) -> sessionmaker[Session]:
 
 
 def init_db(engine: Engine) -> None:
+    import_models()
     Base.metadata.create_all(bind=engine)
 
 

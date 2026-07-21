@@ -7,7 +7,6 @@ from pynance.database import (
     create_engine_from_url,
     init_db,
 )
-from pynance.models import account as _account
 
 app = typer.Typer()
 
