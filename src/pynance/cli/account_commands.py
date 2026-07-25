@@ -5,7 +5,7 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from pynance.cli.dependencies import database_session_context
+from pynance.cli.service_runner import run_service_operation
 from pynance.models.account import Account, AccountType
 from pynance.repositories.account_repository import AccountRepository
 from pynance.services.account_service import AccountService
@@ -55,28 +55,24 @@ def create(
 ) -> None:
     parsed_balance = _parse_balance(balance)
 
-    try:
-        with database_session_context() as session:
-            repository = AccountRepository(session)
-            service = AccountService(repository)
-
-            account = service.create_account(
-                name=name, account_type=account_type, balance=parsed_balance
-            )
-
-    except ValueError as error:
-        raise typer.BadParameter(str(error)) from None
+    account = run_service_operation(
+        AccountRepository,
+        AccountService,
+        lambda service: service.create_account(
+            name=name, account_type=account_type, balance=parsed_balance
+        ),
+    )
 
     typer.echo(f"Account created {account.id}: {account.name}")
 
 
 @accounts_app.command("list")
 def list_accounts() -> None:
-    with database_session_context() as session:
-        repository = AccountRepository(session)
-        service = AccountService(repository)
-
-        accounts = service.list_accounts()
+    accounts = run_service_operation(
+        AccountRepository,
+        AccountService,
+        lambda service: service.list_accounts(),
+    )
 
     table = _accounts_table("Accounts")
 
@@ -88,15 +84,11 @@ def list_accounts() -> None:
 
 @accounts_app.command()
 def show(account_id: Annotated[int, typer.Argument()]) -> None:
-    try:
-        with database_session_context() as session:
-            repository = AccountRepository(session)
-            service = AccountService(repository)
-
-            account = service.get_account(account_id)
-
-    except ValueError as error:
-        raise typer.BadParameter(str(error)) from None
+    account = run_service_operation(
+        AccountRepository,
+        AccountService,
+        lambda service: service.get_account(account_id),
+    )
 
     table = _accounts_table("Account")
     _add_account_row(table, account)
@@ -112,34 +104,26 @@ def update(
 ) -> None:
     parsed_balance = _parse_balance(balance) if balance is not None else None
 
-    try:
-        with database_session_context() as session:
-            repository = AccountRepository(session)
-            service = AccountService(repository)
-
-            account = service.update_account(
-                account_id,
-                name=name,
-                account_type=account_type,
-                balance=parsed_balance,
-            )
-
-    except ValueError as error:
-        raise typer.BadParameter(str(error)) from None
+    account = run_service_operation(
+        AccountRepository,
+        AccountService,
+        lambda service: service.update_account(
+            account_id,
+            name=name,
+            account_type=account_type,
+            balance=parsed_balance,
+        ),
+    )
 
     typer.echo(f"Account updated {account.id}: {account.name}")
 
 
 @accounts_app.command()
 def delete(account_id: Annotated[int, typer.Argument()]) -> None:
-    try:
-        with database_session_context() as session:
-            repository = AccountRepository(session)
-            service = AccountService(repository)
-
-            service.delete_account(account_id)
-
-    except ValueError as error:
-        raise typer.BadParameter(str(error)) from None
+    run_service_operation(
+        AccountRepository,
+        AccountService,
+        lambda service: service.delete_account(account_id),
+    )
 
     typer.echo(f"Account deleted {account_id}")
