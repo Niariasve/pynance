@@ -1,14 +1,9 @@
 from typing import Protocol
 
-from sqlalchemy.orm import Mapped
 
-
-class NamedEntity(Protocol):
-    id: Mapped[int]
-
-
-class NamedEntityRepository(Protocol):
-    def get_by_name(self, name: str) -> NamedEntity | None: ...
+class HasId(Protocol):
+    @property
+    def id(self) -> int: ...
 
 
 def clean_required_name(name: str, entity_label: str) -> str:
@@ -21,14 +16,11 @@ def clean_required_name(name: str, entity_label: str) -> str:
 
 
 def ensure_unique_name(
-    repository: NamedEntityRepository,
-    clean_name: str,
+    existing_entity: HasId | None,
     entity_label: str,
     *,
     current_id: int | None = None,
 ) -> None:
-    existing_entity = repository.get_by_name(clean_name)
-
     if existing_entity is None:
         return
 

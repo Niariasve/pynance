@@ -13,7 +13,8 @@ class AccountService:
         self, *, name: str, account_type: AccountType, balance: Decimal
     ) -> Account:
         clean_name = clean_required_name(name, "Account")
-        ensure_unique_name(self._repository, clean_name, "Account")
+        existing_account = self._repository.get_by_name(clean_name)
+        ensure_unique_name(existing_account, "Account")
 
         account = Account(name=clean_name, account_type=account_type, balance=balance)
 
@@ -44,9 +45,8 @@ class AccountService:
 
         if name is not None:
             clean_name = clean_required_name(name, "Account")
-            ensure_unique_name(
-                self._repository, clean_name, "Account", current_id=account_id
-            )
+            existing_account = self._repository.get_by_name(clean_name)
+            ensure_unique_name(existing_account, "Account", current_id=account_id)
 
             account.name = clean_name
 

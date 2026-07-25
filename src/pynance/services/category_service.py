@@ -5,21 +5,22 @@ from pynance.services.named_entity import clean_required_name, ensure_unique_nam
 
 class CategoryService:
     def __init__(self, repository: CategoryRepository) -> None:
-        self.repository = repository
+        self._repository = repository
 
     def create_category(self, *, name: str, category_type: CategoryType) -> Category:
         clean_name = clean_required_name(name, "Category")
-        ensure_unique_name(self.repository, clean_name, "Category")
+        existing_category = self._repository.get_by_name(clean_name)
+        ensure_unique_name(existing_category, "Category")
 
         category = Category(name=clean_name, category_type=category_type)
 
-        return self.repository.add(category)
+        return self._repository.add(category)
 
     def list_categories(self) -> list[Category]:
-        return self.repository.list_all()
+        return self._repository.list_all()
 
     def get_category(self, category_id: int) -> Category:
-        category = self.repository.get_by_id(category_id)
+        category = self._repository.get_by_id(category_id)
         if category is None:
             raise ValueError("Category not found")
 
@@ -39,17 +40,16 @@ class CategoryService:
 
         if name is not None:
             clean_name = clean_required_name(name, "Category")
-            ensure_unique_name(
-                self.repository, clean_name, "Category", current_id=category_id
-            )
+            existing_category = self._repository.get_by_name(clean_name)
+            ensure_unique_name(existing_category, "Category", current_id=category_id)
 
             category.name = clean_name
 
         if category_type is not None:
             category.category_type = category_type
 
-        return self.repository.update(category)
+        return self._repository.update(category)
 
     def delete_category(self, category_id: int) -> None:
         category = self.get_category(category_id)
-        self.repository.delete(category)
+        self._repository.delete(category)
