@@ -1,5 +1,6 @@
 from pynance.models.category import Category, CategoryType
 from pynance.repositories.category_repository import CategoryRepository
+from pynance.services.named_entity import clean_required_name, ensure_unique_name
 
 
 class CategoryService:
@@ -7,14 +8,8 @@ class CategoryService:
         self.repository = repository
 
     def create_category(self, *, name: str, category_type: CategoryType) -> Category:
-        clean_name = name.strip()
-
-        if not clean_name:
-            raise ValueError("Category name cannot be empty")
-
-        existing_category = self.repository.get_by_name(clean_name)
-        if existing_category is not None:
-            raise ValueError("Category name already exists")
+        clean_name = clean_required_name(name, "Category")
+        ensure_unique_name(self.repository, clean_name, "Category")
 
         category = Category(name=clean_name, category_type=category_type)
 
@@ -43,14 +38,10 @@ class CategoryService:
         category = self.get_category(category_id)
 
         if name is not None:
-            clean_name = name.strip()
-
-            if not clean_name:
-                raise ValueError("Category name cannot be empty")
-
-            existing_category = self.repository.get_by_name(clean_name)
-            if existing_category is not None and existing_category.id != category_id:
-                raise ValueError("Category name already exists")
+            clean_name = clean_required_name(name, "Category")
+            ensure_unique_name(
+                self.repository, clean_name, "Category", current_id=category_id
+            )
 
             category.name = clean_name
 

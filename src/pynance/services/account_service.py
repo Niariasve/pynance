@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from pynance.models.account import Account, AccountType
 from pynance.repositories.account_repository import AccountRepository
+from pynance.services.named_entity import clean_required_name, ensure_unique_name
 
 
 class AccountService:
@@ -11,14 +12,8 @@ class AccountService:
     def create_account(
         self, *, name: str, account_type: AccountType, balance: Decimal
     ) -> Account:
-        clean_name = name.strip()
-
-        if not clean_name:
-            raise ValueError("Account name cannot be empty")
-
-        existing_account = self._repository.get_by_name(clean_name)
-        if existing_account is not None:
-            raise ValueError("Account name already exists")
+        clean_name = clean_required_name(name, "Account")
+        ensure_unique_name(self._repository, clean_name, "Account")
 
         account = Account(name=clean_name, account_type=account_type, balance=balance)
 
@@ -48,14 +43,10 @@ class AccountService:
         account = self.get_account(account_id)
 
         if name is not None:
-            clean_name = name.strip()
-
-            if not clean_name:
-                raise ValueError("Account name cannot be empty")
-
-            existing_account = self._repository.get_by_name(clean_name)
-            if existing_account is not None and existing_account.id != account.id:
-                raise ValueError("Account name already exists")
+            clean_name = clean_required_name(name, "Account")
+            ensure_unique_name(
+                self._repository, clean_name, "Account", current_id=account_id
+            )
 
             account.name = clean_name
 
