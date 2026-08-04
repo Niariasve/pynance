@@ -56,6 +56,41 @@ class TransactionService:
 
         return self._transaction_repository.add(transaction)
 
+    def list_transactions(self) -> list[Transaction]:
+        return self._transaction_repository.list_all()
+
+    def get_transaction(self, transaction_id: int) -> Transaction:
+        transaction = self._transaction_repository.get_by_id(transaction_id)
+        if transaction is None:
+            raise ValueError("Transaction not found")
+
+        return transaction
+
+    def update_transaction(
+        self,
+        transaction_id: int,
+        *,
+        account_id: int | None,
+        category_id: int | None,
+        amount: Decimal | None,
+        description: str | None,
+        occurred_on: date | None,
+    ) -> Transaction:
+        if (
+            account_id is None
+            and category_id is None
+            and amount is None
+            and description is None
+            and occurred_on is None
+        ):
+            raise ValueError("At least one field must be provided")
+
+            transaction = self.get_transaction(transaction_id)
+
+            if description is not None:
+                clean_description = description.strip()
+                
+
     def _existing_account(self, account_id: int) -> Account | None:
         return self._account_repository.get_by_id(account_id)
 
