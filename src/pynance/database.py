@@ -1,8 +1,9 @@
 from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Any
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
@@ -21,7 +22,17 @@ class DatabaseNotInitializedError(Exception):
 
 
 def create_engine_from_url(database_url: str) -> Engine:
-    return create_engine(database_url)
+    engine = create_engine(database_url)
+
+    if engine.dialect.name == "sqlite":
+
+        @event.listens_for(engine, "connect")
+        def enable_sqlite_foreign_keys(
+            dbapi_connection: Any, _connection_record: Any
+        ) -> None:
+            dbapi_connection.execute("PRAGMA foreign_keys=ON")
+
+    return engine
 
 
 def create_session_factory(engine: Engine) -> sessionmaker[Session]:

@@ -1,10 +1,14 @@
 from datetime import datetime
 from enum import StrEnum
+from typing import TYPE_CHECKING
 
 from sqlalchemy import CheckConstraint, DateTime, String, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from pynance.database import Base
+
+if TYPE_CHECKING:
+    from pynance.models.transaction import Transaction
 
 
 class CategoryType(StrEnum):
@@ -25,6 +29,10 @@ class Category(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), onupdate=func.now()
+    )
+
+    transactions: Mapped[list["Transaction"]] = relationship(
+        back_populates="category"
     )
 
     def __repr__(self) -> str:

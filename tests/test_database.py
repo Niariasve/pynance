@@ -41,6 +41,14 @@ def test_init_db_creates_categories_table(engine: Engine) -> None:
     assert "categories" in inspector.get_table_names()
 
 
+def test_init_db_creates_transactions_table(engine: Engine) -> None:
+    init_db(engine)
+
+    inspector = inspect(engine)
+
+    assert "transactions" in inspector.get_table_names()
+
+
 def test_session_factory_can_persist_and_read_accounts(engine: Engine) -> None:
     init_db(engine)
     session_factory = create_session_factory(engine)
