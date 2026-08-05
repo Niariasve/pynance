@@ -3,6 +3,7 @@ from typing import Annotated
 import typer
 from rich.console import Console
 from rich.table import Table
+from sqlalchemy.orm import Session
 
 from pynance.cli.service_runner import run_service_operation
 from pynance.models.category import Category, CategoryType
@@ -12,6 +13,10 @@ from pynance.services.category_service import CategoryService
 category_app = typer.Typer()
 
 console = Console()
+
+
+def _category_service(session: Session) -> CategoryService:
+    return CategoryService(CategoryRepository(session))
 
 
 def _categories_table(title: str) -> Table:
@@ -42,8 +47,7 @@ def create(
     category_type: Annotated[CategoryType, typer.Option("--type")],
 ) -> None:
     category = run_service_operation(
-        CategoryRepository,
-        CategoryService,
+        _category_service,
         lambda service: service.create_category(name=name, category_type=category_type),
     )
 
@@ -53,8 +57,7 @@ def create(
 @category_app.command("list")
 def list_categories() -> None:
     categories = run_service_operation(
-        CategoryRepository,
-        CategoryService,
+        _category_service,
         lambda service: service.list_categories(),
     )
 
@@ -69,8 +72,7 @@ def list_categories() -> None:
 @category_app.command()
 def show(category_id: Annotated[int, typer.Argument()]) -> None:
     category = run_service_operation(
-        CategoryRepository,
-        CategoryService,
+        _category_service,
         lambda service: service.get_category(category_id),
     )
 
@@ -86,8 +88,7 @@ def update(
     category_type: Annotated[CategoryType | None, typer.Option("--type")] = None,
 ) -> None:
     category = run_service_operation(
-        CategoryRepository,
-        CategoryService,
+        _category_service,
         lambda service: service.update_category(
             category_id,
             name=name,
@@ -101,8 +102,7 @@ def update(
 @category_app.command()
 def delete(category_id: Annotated[int, typer.Argument()]) -> None:
     run_service_operation(
-        CategoryRepository,
-        CategoryService,
+        _category_service,
         lambda service: service.delete_category(category_id),
     )
 

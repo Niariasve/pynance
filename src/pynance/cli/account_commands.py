@@ -3,6 +3,7 @@ from typing import Annotated
 import typer
 from rich.console import Console
 from rich.table import Table
+from sqlalchemy.orm import Session
 
 from pynance.cli.parsers import parse_balance
 from pynance.cli.service_runner import run_service_operation
@@ -13,6 +14,10 @@ from pynance.services.account_service import AccountService
 accounts_app = typer.Typer()
 
 console = Console()
+
+
+def _account_service(session: Session) -> AccountService:
+    return AccountService(AccountRepository(session))
 
 
 def _accounts_table(title: str) -> Table:
@@ -44,8 +49,7 @@ def create(
     parsed_balance = parse_balance(balance)
 
     account = run_service_operation(
-        AccountRepository,
-        AccountService,
+        _account_service,
         lambda service: service.create_account(
             name=name, account_type=account_type, balance=parsed_balance
         ),
@@ -57,8 +61,7 @@ def create(
 @accounts_app.command("list")
 def list_accounts() -> None:
     accounts = run_service_operation(
-        AccountRepository,
-        AccountService,
+        _account_service,
         lambda service: service.list_accounts(),
     )
 
@@ -73,8 +76,7 @@ def list_accounts() -> None:
 @accounts_app.command()
 def show(account_id: Annotated[int, typer.Argument()]) -> None:
     account = run_service_operation(
-        AccountRepository,
-        AccountService,
+        _account_service,
         lambda service: service.get_account(account_id),
     )
 
@@ -93,8 +95,7 @@ def update(
     parsed_balance = parse_balance(balance) if balance is not None else None
 
     account = run_service_operation(
-        AccountRepository,
-        AccountService,
+        _account_service,
         lambda service: service.update_account(
             account_id,
             name=name,
@@ -109,8 +110,7 @@ def update(
 @accounts_app.command()
 def delete(account_id: Annotated[int, typer.Argument()]) -> None:
     run_service_operation(
-        AccountRepository,
-        AccountService,
+        _account_service,
         lambda service: service.delete_account(account_id),
     )
 

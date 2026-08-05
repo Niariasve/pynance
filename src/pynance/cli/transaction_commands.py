@@ -1,19 +1,29 @@
-from decimal import Decimal
 from typing import Annotated
 
-from pynance.cli.parsers import parse_balance, parse_iso_date
-from pynance.cli.service_runner import run_service_operation
-from pynance.repositories.transaction_repository import TransactionRepository
-from pynance.services.transaction_service import TransactionService
 import typer
 from rich.console import Console
 from rich.table import Table
+from sqlalchemy.orm import Session
 
+from pynance.cli.parsers import parse_balance, parse_iso_date
+from pynance.cli.service_runner import run_service_operation
 from pynance.models.transaction import Transaction
+from pynance.repositories.account_repository import AccountRepository
+from pynance.repositories.category_repository import CategoryRepository
+from pynance.repositories.transaction_repository import TransactionRepository
+from pynance.services.transaction_service import TransactionService
 
 transactions_app = typer.Typer()
 
 console = Console()
+
+
+def _transaction_service(session: Session) -> TransactionService:
+    return TransactionService(
+        TransactionRepository(session),
+        AccountRepository(session),
+        CategoryRepository(session),
+    )
 
 
 def _transactions_table(title: str) -> Table:
@@ -54,15 +64,14 @@ def create(
     parsed_occurred_on = parse_iso_date(occurred_on)
 
     transaction = run_service_operation(
-        TransactionRepository,
-        TransactionService,
+        _transaction_service,
         lambda service: service.create_transaction(
             account_id=account_id,
             category_id=category_id,
             amount=parsed_amount,
             description=description,
-            occurred_on=parsed_occurred_on
-        )
+            occurred_on=parsed_occurred_on,
+        ),
     )
 
     typer.echo(f"Transaction created {transaction.id}")
