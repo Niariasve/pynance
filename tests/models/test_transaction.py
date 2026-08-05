@@ -102,6 +102,30 @@ def test_transaction_rejects_blank_description(
             session.commit()
 
 
+@pytest.mark.parametrize(
+    ("account_id", "category_id"),
+    [(999, 1), (1, 999)],
+)
+def test_transaction_rejects_missing_references(
+    session_factory: sessionmaker[Session],
+    account_id: int,
+    category_id: int,
+) -> None:
+    with session_factory() as session:
+        account, category = create_account_and_category(session)
+        transaction = Transaction(
+            account_id=account_id if account_id == 999 else account.id,
+            category_id=category_id if category_id == 999 else category.id,
+            amount=Decimal("24.50"),
+            description="Groceries",
+            occurred_on=date(2026, 7, 28),
+        )
+        session.add(transaction)
+
+        with pytest.raises(IntegrityError):
+            session.commit()
+
+
 def test_transaction_prevents_deleting_a_referenced_account(
     session_factory: sessionmaker[Session],
 ) -> None:

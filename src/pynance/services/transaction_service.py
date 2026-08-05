@@ -70,11 +70,11 @@ class TransactionService:
         self,
         transaction_id: int,
         *,
-        account_id: int | None,
-        category_id: int | None,
-        amount: Decimal | None,
-        description: str | None,
-        occurred_on: date | None,
+        account_id: int | None = None,
+        category_id: int | None = None,
+        amount: Decimal | None = None,
+        description: str | None = None,
+        occurred_on: date | None = None,
     ) -> Transaction:
         if (
             account_id is None
@@ -85,11 +85,50 @@ class TransactionService:
         ):
             raise ValueError("At least one field must be provided")
 
-            transaction = self.get_transaction(transaction_id)
+        transaction = self.get_transaction(transaction_id)
 
-            if description is not None:
-                clean_description = description.strip()
-                
+        if description is not None:
+            clean_description = description.strip()
+
+            if not clean_description:
+                raise ValueError("Description cannot be empty")
+
+            transaction.description = clean_description
+
+        if amount is not None:
+            if not amount.is_finite() or amount <= 0:
+                raise ValueError("Amount must be finite positive number")
+
+            cent = Decimal("0.01")
+            if amount != amount.quantize(cent):
+                raise ValueError("Amount must have at most two decimals")
+
+            transaction.amount = amount
+
+        if occurred_on is not None:
+            transaction.occurred_on = occurred_on
+
+        if category_id is not None:
+            category = self._existing_category(category_id)
+
+            if category is None:
+                raise ValueError("Category not found")
+
+            transaction.category = category
+
+        if account_id is not None:
+            account = self._existing_account(account_id)
+
+            if account is None:
+                raise ValueError("Account not found")
+
+            transaction.account = account
+
+        return self._transaction_repository.update(transaction)
+
+    def delete_transaction(self, transaction_id: int) -> None:
+        transaction = self.get_transaction(transaction_id)
+        self._transaction_repository.delete(transaction)
 
     def _existing_account(self, account_id: int) -> Account | None:
         return self._account_repository.get_by_id(account_id)
