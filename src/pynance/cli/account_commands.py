@@ -1,10 +1,10 @@
-from decimal import Decimal, InvalidOperation
 from typing import Annotated
 
 import typer
 from rich.console import Console
 from rich.table import Table
 
+from pynance.cli.parsers import parse_balance
 from pynance.cli.service_runner import run_service_operation
 from pynance.models.account import Account, AccountType
 from pynance.repositories.account_repository import AccountRepository
@@ -13,18 +13,6 @@ from pynance.services.account_service import AccountService
 accounts_app = typer.Typer()
 
 console = Console()
-
-
-def _parse_balance(balance: str) -> Decimal:
-    try:
-        parsed_balance = Decimal(balance)
-    except InvalidOperation:
-        raise typer.BadParameter("Balance must be a valid decimal number") from None
-
-    if not parsed_balance.is_finite():
-        raise typer.BadParameter("Balance must be a finite decimal number")
-
-    return parsed_balance
 
 
 def _accounts_table(title: str) -> Table:
@@ -53,7 +41,7 @@ def create(
     account_type: Annotated[AccountType, typer.Option("--type")],
     balance: Annotated[str, typer.Option()] = "0.0",
 ) -> None:
-    parsed_balance = _parse_balance(balance)
+    parsed_balance = parse_balance(balance)
 
     account = run_service_operation(
         AccountRepository,
@@ -102,7 +90,7 @@ def update(
     account_type: Annotated[AccountType | None, typer.Option("--type")] = None,
     balance: Annotated[str | None, typer.Option()] = None,
 ) -> None:
-    parsed_balance = _parse_balance(balance) if balance is not None else None
+    parsed_balance = parse_balance(balance) if balance is not None else None
 
     account = run_service_operation(
         AccountRepository,
