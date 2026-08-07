@@ -205,6 +205,35 @@ def test_account_service_rejects_duplicate_updated_account_name(
         account_service.update_account(savings_account.id, name="Cash")
 
 
+def test_account_service_failed_update_leaves_all_fields_unchanged(
+    account_service: AccountService,
+) -> None:
+    account_service.create_account(
+        name="Cash",
+        account_type=AccountType.CASH,
+        balance=Decimal("20.00"),
+    )
+    savings_account = account_service.create_account(
+        name="Savings",
+        account_type=AccountType.SAVINGS,
+        balance=Decimal("50.00"),
+    )
+
+    with pytest.raises(ValueError, match="Account name already exists"):
+        account_service.update_account(
+            savings_account.id,
+            name="Cash",
+            account_type=AccountType.BANK,
+            balance=Decimal("100.00"),
+        )
+
+    unchanged_account = account_service.get_account(savings_account.id)
+
+    assert unchanged_account.name == "Savings"
+    assert unchanged_account.account_type == AccountType.SAVINGS
+    assert unchanged_account.balance == Decimal("50.00")
+
+
 def test_account_service_allows_unchanged_updated_account_name(
     account_service: AccountService,
 ) -> None:

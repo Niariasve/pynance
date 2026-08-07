@@ -161,6 +161,31 @@ def test_category_service_rejects_duplicate_updated_category_name(
         category_service.update_category(salary_category.id, name="Food")
 
 
+def test_category_service_failed_update_leaves_all_fields_unchanged(
+    category_service: CategoryService,
+) -> None:
+    category_service.create_category(
+        name="Food",
+        category_type=CategoryType.EXPENSE,
+    )
+    salary_category = category_service.create_category(
+        name="Salary",
+        category_type=CategoryType.INCOME,
+    )
+
+    with pytest.raises(ValueError, match="Category name already exists"):
+        category_service.update_category(
+            salary_category.id,
+            name="Food",
+            category_type=CategoryType.EXPENSE,
+        )
+
+    unchanged_category = category_service.get_category(salary_category.id)
+
+    assert unchanged_category.name == "Salary"
+    assert unchanged_category.category_type == CategoryType.INCOME
+
+
 def test_category_service_allows_unchanged_updated_category_name(
     category_service: CategoryService,
 ) -> None:
