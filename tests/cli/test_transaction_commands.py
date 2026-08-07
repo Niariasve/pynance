@@ -260,7 +260,11 @@ def test_transactions_create_surfaces_missing_reference_errors(
     ("option", "value", "message"),
     [
         ("--amount", "not-a-decimal", "Amount must be a valid decimal number"),
-        ("--date", "2026-02-30", "Invalid value for '--date'"),
+        (
+            "--date",
+            "2026-02-30",
+            "Date must be a valid date in YYYY-MM-DD format",
+        ),
     ],
 )
 def test_transactions_create_rejects_invalid_cli_values(

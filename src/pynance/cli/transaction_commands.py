@@ -5,7 +5,7 @@ from rich.console import Console
 from rich.table import Table
 from sqlalchemy.orm import Session
 
-from pynance.cli.parsers import parse_balance, parse_iso_date
+from pynance.cli.parsers import parse_amount, parse_iso_date
 from pynance.cli.service_runner import run_service_operation
 from pynance.models.transaction import Transaction
 from pynance.repositories.account_repository import AccountRepository
@@ -43,7 +43,7 @@ def _transactions_table(title: str) -> Table:
 def _add_transaction_row(table: Table, transaction: Transaction) -> None:
     table.add_row(
         str(transaction.id),
-        f"{transaction.occurred_on.isoformat}",
+        f"{transaction.occurred_on.isoformat()}",
         transaction.description,
         transaction.account.name,
         transaction.category.name,
@@ -60,7 +60,7 @@ def create(
     occurred_on: Annotated[str, typer.Option("--date")],
     amount: Annotated[str, typer.Option()],
 ) -> None:
-    parsed_amount = parse_balance(amount)
+    parsed_amount = parse_amount(amount)
     parsed_occurred_on = parse_iso_date(occurred_on)
 
     transaction = run_service_operation(
@@ -75,3 +75,67 @@ def create(
     )
 
     typer.echo(f"Transaction created {transaction.id}")
+
+
+@transactions_app.command()
+def list() -> None:
+    transactions = run_service_operation(
+        _transaction_service,
+        lambda service: service.list_transactions(),
+    )
+
+    table = _transactions_table("Transactions")
+
+    for transaction in transactions:
+        _add_transaction_row(table, transaction)
+
+    console.print(table)
+
+
+@transactions_app.command()
+def show(transaction_id: Annotated[int, typer.Argument()]) -> None:
+    transaction = run_service_operation(
+        _transaction_service, lambda service: service.get_transaction(transaction_id)
+    )
+
+    table = _transactions_table("Transactions")
+    _add_transaction_row(table, transaction)
+    console.print(table)
+
+
+@transactions_app.command()
+def update(
+    transaction_id: Annotated[int, typer.Argument()],
+    account_id: Annotated[int | None, typer.Option("--account-id")] = None,
+    category_id: Annotated[int | None, typer.Option("--category-id")] = None,
+    description: Annotated[str | None, typer.Option()] = None,
+    occurred_on: Annotated[str | None, typer.Option("--date")] = None,
+    amount: Annotated[str | None, typer.Option()] = None,
+) -> None:
+    parsed_amount = parse_amount(amount) if amount is not None else None
+    parsed_occurred_on = (
+        parse_iso_date(occurred_on) if occurred_on is not None else None
+    )
+
+    transaction = run_service_operation(
+        _transaction_service,
+        lambda service: service.update_transaction(
+            transaction_id,
+            account_id=account_id,
+            category_id=category_id,
+            description=description,
+            occurred_on=parsed_occurred_on,
+            amount=parsed_amount,
+        ),
+    )
+
+    typer.echo(f"Transaction updated {transaction.id}")
+
+
+@transactions_app.command()
+def delete(transaction_id: Annotated[int, typer.Argument()]) -> None:
+    run_service_operation(
+        _transaction_service, lambda service: service.delete_transaction(transaction_id)
+    )
+
+    typer.echo(f"Transaction deleted {transaction_id}")

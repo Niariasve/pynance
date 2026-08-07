@@ -36,8 +36,8 @@ def _add_category_row(table: Table, category: Category) -> None:
         str(category.id),
         category.name,
         category.category_type,
-        f"{category.created_at.isoformat}",
-        f"{category.updated_at.isoformat}",
+        f"{category.created_at.isoformat()}",
+        f"{category.updated_at.isoformat()}",
     )
 
 

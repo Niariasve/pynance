@@ -93,8 +93,6 @@ class TransactionService:
             if not clean_description:
                 raise ValueError("Description cannot be empty")
 
-            transaction.description = clean_description
-
         if amount is not None:
             if not amount.is_finite() or amount <= 0:
                 raise ValueError("Amount must be finite positive number")
@@ -103,26 +101,32 @@ class TransactionService:
             if amount != amount.quantize(cent):
                 raise ValueError("Amount must have at most two decimals")
 
+        if category_id is not None:
+            new_category = self._existing_category(category_id)
+
+            if new_category is None:
+                raise ValueError("Category not found")
+
+        if account_id is not None:
+            new_account = self._existing_account(account_id)
+
+            if new_account is None:
+                raise ValueError("Account not found")
+
+        if clean_description is not None:
+            transaction.description = clean_description
+
+        if amount is not None:
             transaction.amount = amount
+
+        if new_category is not None:
+            transaction.category = new_category
+
+        if new_account is not None:
+            transaction.account = new_account
 
         if occurred_on is not None:
             transaction.occurred_on = occurred_on
-
-        if category_id is not None:
-            category = self._existing_category(category_id)
-
-            if category is None:
-                raise ValueError("Category not found")
-
-            transaction.category = category
-
-        if account_id is not None:
-            account = self._existing_account(account_id)
-
-            if account is None:
-                raise ValueError("Account not found")
-
-            transaction.account = account
 
         return self._transaction_repository.update(transaction)
 
