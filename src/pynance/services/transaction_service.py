@@ -87,6 +87,10 @@ class TransactionService:
 
         transaction = self.get_transaction(transaction_id)
 
+        clean_description: str | None = None
+        new_category: Category | None = None
+        new_account: Account | None = None
+
         if description is not None:
             clean_description = description.strip()
 

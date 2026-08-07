@@ -7,10 +7,6 @@ from sqlalchemy.orm import Session
 from pynance.cli.dependencies import database_session_context
 
 
-class RepositoryFactory[RepositoryT](Protocol):
-    def __call__(self, session: Session, /) -> RepositoryT: ...
-
-
 class ServiceFactory[ServiceT](Protocol):
     def __call__(self, session: Session, /) -> ServiceT: ...
 

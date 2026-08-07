@@ -250,6 +250,78 @@ def test_transaction_service_rejects_update_without_fields(
         service.update_transaction(transaction.id)
 
 
+def test_transaction_service_invalid_amount_leaves_transaction_unchanged(
+    transaction_context: TransactionContext,
+) -> None:
+    service, account_repository, category_repository = transaction_context
+    account, category = _references(account_repository, category_repository)
+    transaction = service.create_transaction(
+        account_id=account.id,
+        category_id=category.id,
+        amount=Decimal("24.50"),
+        description="Groceries",
+        occurred_on=date(2026, 7, 28),
+    )
+
+    with pytest.raises(ValueError, match="Amount must be finite positive number"):
+        service.update_transaction(
+            transaction.id,
+            description="Changed",
+            amount=Decimal("-1.00"),
+        )
+
+    assert transaction.description == "Groceries"
+    assert transaction.amount == Decimal("24.50")
+
+
+def test_transaction_service_missing_category_leaves_transaction_unchanged(
+    transaction_context: TransactionContext,
+) -> None:
+    service, account_repository, category_repository = transaction_context
+    account, category = _references(account_repository, category_repository)
+    transaction = service.create_transaction(
+        account_id=account.id,
+        category_id=category.id,
+        amount=Decimal("24.50"),
+        description="Groceries",
+        occurred_on=date(2026, 7, 28),
+    )
+
+    with pytest.raises(ValueError, match="Category not found"):
+        service.update_transaction(
+            transaction.id,
+            category_id=999,
+            description="Changed",
+        )
+
+    assert transaction.description == "Groceries"
+    assert transaction.category_id == category.id
+
+
+def test_transaction_service_missing_account_leaves_transaction_unchanged(
+    transaction_context: TransactionContext,
+) -> None:
+    service, account_repository, category_repository = transaction_context
+    account, category = _references(account_repository, category_repository)
+    transaction = service.create_transaction(
+        account_id=account.id,
+        category_id=category.id,
+        amount=Decimal("24.50"),
+        description="Groceries",
+        occurred_on=date(2026, 7, 28),
+    )
+
+    with pytest.raises(ValueError, match="Account not found"):
+        service.update_transaction(
+            transaction.id,
+            account_id=999,
+            amount=Decimal("30.00"),
+        )
+
+    assert transaction.amount == Decimal("24.50")
+    assert transaction.account_id == account.id
+
+
 def test_transaction_service_deletes_transaction(
     transaction_context: TransactionContext,
 ) -> None:
